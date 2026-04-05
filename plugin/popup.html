@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<link rel="stylesheet" href="popup.css"/>
+</head>
+<body>
+
+<div class="header">
+  <img src="logo.png" class="logo-img" alt="logo"/>
+  <div>
+    <div class="title">ReviewRanker</div>
+    <div class="subtitle">AI Helpfulness Analyzer</div>
+  </div>
+  <div class="version">v2.0</div>
+</div>
+
+<div class="status">
+  <div class="dot checking" id="status-dot"></div>
+  <span id="status-text">Checking server...</span>
+</div>
+
+<div class="sec-label">Test a review before posting</div>
+<textarea id="inp" placeholder="Paste your review text here to check its helpfulness score before posting..."></textarea>
+<button class="btn-primary" id="btn-analyze">
+  <div class="spinner" id="spin-analyze"></div>
+  <span class="btn-label">Check Helpfulness Score</span>
+</button>
+
+<div id="result" class="result-hidden">
+  <div class="r-top">
+    <div class="r-dot" id="r-dot"></div>
+    <div class="r-label" id="r-label"></div>
+    <div class="r-pct" id="r-pct"></div>
+  </div>
+  <div class="bar-track"><div class="bar-fill" id="r-bar"></div></div>
+  <div class="r-desc" id="r-desc"></div>
+  <div class="r-breakdown" id="r-breakdown"></div>
+</div>
+
+<div class="toast result-hidden" id="toast"></div>
+
+<div class="divider"></div>
+
+<div class="sec-label">Current page</div>
+<button class="btn-secondary" id="btn-page">
+  <div class="spinner yellow-spin" id="spin-page"></div>
+  <span class="btn-label">Re-analyze All Reviews on Page</span>
+</button>
+
+<script src="popup.js"></script>
+</body>
+</html>

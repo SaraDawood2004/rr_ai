@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "ReviewRanker — AI Helpfulness Analyzer",
+  "version": "1.0",
+  "description": "Scores and reorders Amazon reviews by AI-predicted helpfulness.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": [
+    "https://www.amazon.com/*",
+    "https://www.amazon.in/*",
+    "https://www.flipkart.com/*",
+    "https://www.walmart.com/*",
+    "https://www.bestbuy.com/*",
+    "https://www.ebay.com/*",
+    "https://www.myntra.com/*",
+    "http://localhost:5000/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "48": "icon.png" }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.amazon.com/*",
+        "https://www.amazon.in/*",
+        "https://www.flipkart.com/*",
+        "https://www.walmart.com/*",
+        "https://www.bestbuy.com/*",
+        "https://www.ebay.com/*",
+        "https://www.myntra.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": { "48": "icon.png" }
+}

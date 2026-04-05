@@ -4,7 +4,7 @@
  * Fixes: all reviews loaded, multi-site, color dots, re-analyze trigger
  */
 
-const API_URL = 'http://localhost:5000/api/predict-bulk'
+const API_URL = 'https://reviewranker-u5vf.onrender.com/api/predict-bulk'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SITE ADAPTERS — selectors for each supported website

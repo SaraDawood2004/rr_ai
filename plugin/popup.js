@@ -1,7 +1,7 @@
 // popup.js — ReviewRanker
 // All JS is in this external file to satisfy Chrome Extension CSP rules.
 
-const API = 'http://localhost:5000'
+const API = 'https://reviewranker-u5vf.onrender.com/'
 
 const STYLES = {
   green : { dot:'#22c55e', bg:'rgba(34,197,94,.10)',  border:'rgba(34,197,94,.30)',  label:'Useful' },

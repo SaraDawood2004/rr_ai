@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
+pip install --upgrade pip
 pip install -r requirements.txt
-python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+python -m spacy download en_core_web_sm

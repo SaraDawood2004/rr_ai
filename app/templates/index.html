@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ReviewRanker — AI Helpfulness Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  
+/* ── Reset & Base ─────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0f14;--bg2:#13161e;--bg3:#1a1e2a;--card:#1e2230;
+  --border:#2a2f42;--border2:#353b52;
+  --accent:#6c63ff;--accent2:#8b85ff;--accent-glow:rgba(108,99,255,.18);
+  --green:#22c55e;--green-bg:rgba(34,197,94,.1);--green-border:rgba(34,197,94,.25);
+  --orange:#f59e0b;--orange-bg:rgba(245,158,11,.1);--orange-border:rgba(245,158,11,.25);
+  --red:#ef4444;--red-bg:rgba(239,68,68,.1);--red-border:rgba(239,68,68,.25);
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --radius:14px;--radius-sm:8px;
+  --font:'Inter',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;line-height:1.6}
+
+/* ── Layout ───────────────────────────────────────────────── */
+.shell{max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* ── Navbar ───────────────────────────────────────────────── */
+nav{border-bottom:1px solid var(--border);padding:18px 0;position:sticky;top:0;z-index:100;background:rgba(13,15,20,.92);backdrop-filter:blur(12px)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem;letter-spacing:-.3px}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),#a78bfa);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.nav-badge{font-size:.7rem;font-weight:600;background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent2);padding:3px 10px;border-radius:99px;letter-spacing:.4px}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.hero{text-align:center;padding:64px 0 48px}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:600;color:var(--accent2);background:var(--accent-glow);border:1px solid rgba(108,99,255,.3);padding:5px 14px;border-radius:99px;margin-bottom:24px;letter-spacing:.5px}
+.hero h1{font-size:2.9rem;font-weight:700;letter-spacing:-.8px;line-height:1.15;margin-bottom:16px;background:linear-gradient(135deg,#e2e8f0 30%,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--text2);font-size:1.05rem;max-width:520px;margin:0 auto 40px}
+.stats-row{display:flex;justify-content:center;gap:36px;flex-wrap:wrap}
+.stat{text-align:center}
+.stat-val{font-size:1.6rem;font-weight:700;color:var(--accent2)}
+.stat-lbl{font-size:.75rem;color:var(--text3);margin-top:2px;letter-spacing:.4px;text-transform:uppercase}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.tabs{display:flex;gap:4px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:5px;width:fit-content;margin:0 auto 36px}
+.tab{padding:9px 24px;border-radius:10px;border:none;background:transparent;color:var(--text2);font-family:var(--font);font-size:.875rem;font-weight:500;cursor:pointer;transition:.2s}
+.tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 6px rgba(0,0,0,.35)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* ── Main card ────────────────────────────────────────────── */
+.main-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-header{padding:22px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-header h2{font-size:1rem;font-weight:600}
+.card-header span{color:var(--text3);font-size:.85rem;margin-left:auto}
+.card-body{padding:28px}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.form-group{margin-bottom:20px}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:8px;letter-spacing:.3px;text-transform:uppercase}
+input[type=text],textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:.93rem;padding:13px 16px;outline:none;transition:.2s;resize:vertical}
+input[type=text]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+textarea{min-height:150px;line-height:1.6}
+::placeholder{color:var(--text3)}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* ── Analyze button ───────────────────────────────────────── */
+.btn-analyze{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#8b5cf6);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:.95rem;font-weight:600;cursor:pointer;transition:.2s;letter-spacing:.2px;position:relative;overflow:hidden}
+.btn-analyze:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 8px 24px rgba(108,99,255,.35)}
+.btn-analyze:active{transform:translateY(0)}
+.btn-analyze:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-analyze .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+.btn-analyze.loading .btn-text{display:none}
+.btn-analyze.loading .spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Result card ──────────────────────────────────────────── */
+#result-section{margin-top:24px;display:none}
+.result-card{border-radius:var(--radius);padding:26px;border:1px solid}
+.result-card.green{background:var(--green-bg);border-color:var(--green-border)}
+.result-card.orange{background:var(--orange-bg);border-color:var(--orange-border)}
+.result-card.red{background:var(--red-bg);border-color:var(--red-border)}
+
+.result-top{display:flex;align-items:flex-start;gap:18px}
+.result-emoji{font-size:2.4rem;line-height:1}
+.result-meta{flex:1}
+.result-tag{font-size:1.2rem;font-weight:700;margin-bottom:4px}
+.result-desc{color:var(--text2);font-size:.88rem}
+
+.score-block{margin-left:auto;text-align:right}
+.score-num{font-size:2.5rem;font-weight:700;line-height:1}
+.score-lbl{font-size:.72rem;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+.score-bar-wrap{margin:18px 0 0;height:8px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.score-bar{height:100%;border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.score-bar.green{background:linear-gradient(90deg,#16a34a,var(--green))}
+.score-bar.orange{background:linear-gradient(90deg,#b45309,var(--orange))}
+.score-bar.red{background:linear-gradient(90deg,#b91c1c,var(--red))}
+
+/* ── Breakdown grid ───────────────────────────────────────── */
+.breakdown-title{font-size:.75rem;font-weight:700;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin:22px 0 12px}
+.breakdown-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.breakdown-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px}
+.bc-label{font-size:.7rem;font-weight:700;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
+.bc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.78rem}
+.bc-row:last-child{border-bottom:none}
+.bc-key{color:var(--text2)}
+.bc-val{font-weight:600;color:var(--text)}
+
+/* ── Bulk panel ───────────────────────────────────────────── */
+.bulk-info{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;font-size:.83rem;color:var(--text2);margin-bottom:20px;line-height:1.7}
+.bulk-info code{background:var(--bg2);border:1px solid var(--border);padding:1px 7px;border-radius:4px;font-size:.79rem;color:var(--accent2)}
+.ranked-list{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+.rank-item{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px 20px;display:flex;align-items:center;gap:16px;transition:.2s}
+.rank-item:hover{border-color:var(--border2)}
+.rank-pos{font-size:1.1rem;font-weight:700;color:var(--text3);min-width:28px}
+.rank-body{flex:1;min-width:0}
+.rank-text{font-size:.85rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.rank-right{text-align:right;flex-shrink:0}
+.rank-score{font-size:1.2rem;font-weight:700}
+.rank-score.green{color:var(--green)}
+.rank-score.orange{color:var(--orange)}
+.rank-score.red{color:var(--red)}
+.tag-pill{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:99px;margin-top:5px;letter-spacing:.3px}
+.tag-pill.green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tag-pill.orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+.tag-pill.red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+
+/* ── Footer ───────────────────────────────────────────────── */
+footer{text-align:center;padding:36px 0;color:var(--text3);font-size:.8rem;border-top:1px solid var(--border);margin-top:60px}
+
+/* ── Error toast ──────────────────────────────────────────── */
+.toast{position:fixed;bottom:28px;right:28px;background:#1e2230;border:1px solid var(--red-border);color:var(--red);padding:13px 20px;border-radius:var(--radius-sm);font-size:.87rem;font-weight:500;display:none;z-index:999;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+
+@media(max-width:700px){
+  .hero h1{font-size:2rem}
+  .form-row{grid-template-columns:1fr}
+  .breakdown-grid{grid-template-columns:1fr}
+  .result-top{flex-wrap:wrap}
+  .score-block{margin-left:0}
+  .stats-row{gap:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav>
+  <div class="shell nav-inner">
+    <div class="logo">
+      <div class="logo-icon">🔍</div>
+      ReviewRanker
+    </div>
+    <div class="nav-badge">AI POWERED</div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="shell">
+  <div class="hero">
+    <div class="hero-tag">⚡ NLP · Machine Learning · Review Intelligence</div>
+    <h1>Know Which Reviews<br>Actually Matter</h1>
+    <p>Our AI analyzes text structure, grammar quality, and user signals to score any review's helpfulness — before others vote on it.</p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Analysis Components</div></div>
+      <div class="stat"><div class="stat-val">40+</div><div class="stat-lbl">NLP Features</div></div>
+      <div class="stat"><div class="stat-val">10K</div><div class="stat-lbl">Training Reviews</div></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('single',this)">Single Review</button>
+    <button class="tab" onclick="switchTab('bulk',this)">Bulk Ranking</button>
+  </div>
+
+  <!-- ── Single Tab ── -->
+  <div id="tab-single">
+    <div class="main-card">
+      <div class="card-header">
+        <span>🧠</span>
+        <h2>Analyze Review Helpfulness</h2>
+        <span>Powered by Random Forest + NLP</span>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Review Title / Summary (optional)</label>
+          <input type="text" id="inp-summary" placeholder="e.g. Great product, minor packaging issue"/>
+        </div>
+        <div class="form-group">
+          <label>Review Text *</label>
+          <textarea id="inp-text" placeholder="Paste or type the full review here...&#10;&#10;e.g. I have been using this product for 3 months and can confidently say it is one of the best purchases I have made..."></textarea>
+        </div>
+        <button class="btn-analyze" id="btn-single" onclick="analyzeSingle()">
+          <span class="btn-text">⚡ Analyze Helpfulness</span>
+          <div class="spinner"></div>
+        </button>
+
+        <!-- Result -->
+        <div id="result-section">
+          <div class="result-card" id="result-card">
+            <div class="result-top">
+              <div class="result-emoji" id="res-emoji"></div>
+              <div class="result-meta">
+                <div class="result-tag" id="res-tag"></div>
+                <div class="result-desc" id="res-desc"></div>
+              </div>
+              <div class="score-block">
+                <div class="score-num" id="res-score"></div>
+                <div class="score-lbl">Helpfulness</div>
+              </div>
+            </div>
+            <div class="score-bar-wrap">
+              <div class="score-bar" id="res-bar" style="width:0%"></div>
+            </div>
+            <div class="breakdown-title">Analysis Breakdown</div>
+            <div class="breakdown-grid">
+              <!-- Text Structure -->
+              <div class="breakdown-card">
+                <div class="bc-label">📝 Text Structure</div>
+                <div class="bc-row"><span class="bc-key">Sentiment</span><span class="bc-val" id="b-sentiment"></span></div>
+                <div class="bc-row"><span class="bc-key">Readability</span><span class="bc-val" id="b-readability"></span></div>
+                <div class="bc-row"><span class="bc-key">Word count</span><span class="bc-val" id="b-words"></span></div>
+                <div class="bc-row"><span class="bc-key">Feature mentions</span><span class="bc-val" id="b-features"></span></div>
+                <div class="bc-row"><span class="bc-key">Balanced opinion</span><span class="bc-val" id="b-balanced"></span></div>
+              </div>
+              <!-- Grammar Structure -->
+              <div class="breakdown-card">
+                <div class="bc-label">🔤 Grammar Structure</div>
+                <div class="bc-row"><span class="bc-key">POS diversity</span><span class="bc-val" id="b-pos"></span></div>
+                <div class="bc-row"><span class="bc-key">Lexical richness</span><span class="bc-val" id="b-lexical"></span></div>
+                <div class="bc-row"><span class="bc-key">Emotion words</span><span class="bc-val" id="b-emotion"></span></div>
+                <div class="bc-row"><span class="bc-key">CAPS ratio</span><span class="bc-val" id="b-caps"></span></div>
+                <div class="bc-row"><span class="bc-key">Has numbers</span><span class="bc-val" id="b-numbers"></span></div>
+              </div>
+              <!-- User Signals -->
+              <div class="breakdown-card">
+                <div class="bc-label">👤 User Signals</div>
+                <div class="bc-row"><span class="bc-key">Star rating</span><span class="bc-val" id="b-score"></span></div>
+                <div class="bc-row"><span class="bc-key">Reviewer history</span><span class="bc-val" id="b-history"></span></div>
+                <div class="bc-row"><span class="bc-key">Rating deviation</span><span class="bc-val" id="b-deviation"></span></div>
+                <div class="bc-row"><span class="bc-key">Spam flag</span><span class="bc-val" id="b-spam"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bulk Tab ── -->
+  <div id="tab-bulk" style="display:none">
+    <div class="main-card">
+      <div class="card-header">
+        <span>📊</span>
+        <h2>Bulk Review Ranking</h2>
+        <span>Paste multiple reviews — we rank them by helpfulness</span>
+      </div>
+      <div class="card-body">
+        <div class="bulk-info">
+          Paste one review per line. Format: <code>Title :: Review text</code><br>
+          Example: <code>Good product :: I have used this for 2 months and the quality is excellent...</code><br>
+          Title is optional — you can also just paste plain review text per line.
+        </div>
+        <div class="form-group">
+          <label>Reviews (one per line)</label>
+          <textarea id="bulk-input" style="min-height:220px" placeholder="Love it :: I have been buying this for years. The quality is consistently excellent and delivery is always on time. The taste is natural and fresh.&#10;Bad product :: Terrible. Waste of money.&#10;Decent :: It was okay, nothing special but does the job."></textarea>
+        </div>
+        <button class="btn-analyze" id="btn-bulk" onclick="analyzeBulk()">
+          <span class="btn-text">📊 Rank All Reviews</span>
+          <div class="spinner"></div>
+        </button>
+        <div id="bulk-results" class="ranked-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div style="margin-top:56px;text-align:center">
+    <div class="breakdown-title" style="margin-bottom:20px;font-size:.8rem">HOW IT WORKS</div>
+    <div class="breakdown-grid">
+      <div class="breakdown-card" style="padding:22px;text-align:left">
+        <div style="font-size:1.5rem;margin-bottom:10px">📝</div>
+        <div style="font-weight:600;margin-bottom:6px">Text Structure</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.7">Sentiment analysis, readability scores, feature mentions, pros &amp; cons balance — analyzing WHAT was said.</div>
+      </div>
+      <div class="breakdown-card" style="padding:22px;text-align:left">
+        <div style="font-size:1.5rem;margin-bottom:10px">🔤</div>
+        <div style="font-weight:600;margin-bottom:6px">Grammar Structure</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.7">POS diversity, lexical richness, emotion intensity, caps/punctuation — analyzing HOW it was written.</div>
+      </div>
+      <div class="breakdown-card" style="padding:22px;text-align:left">
+        <div style="font-size:1.5rem;margin-bottom:10px">👤</div>
+        <div style="font-weight:600;margin-bottom:6px">User Signals</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.7">Reviewer history, frequency, rating deviation — detecting spam and assessing credibility.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="shell">ReviewRanker · NLP Review Helpfulness Prediction · Built with Python, spaCy, VADER &amp; Random Forest</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'http://localhost:5000'
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById('tab-single').style.display = tab === 'single' ? '' : 'none'
+  document.getElementById('tab-bulk').style.display   = tab === 'bulk'   ? '' : 'none'
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast')
+  t.textContent = msg; t.style.display = 'block'
+  setTimeout(() => t.style.display = 'none', 3500)
+}
+
+function setLoading(btnId, on) {
+  const b = document.getElementById(btnId)
+  b.classList.toggle('loading', on)
+  b.disabled = on
+}
+
+// ── Single review ────────────────────────────────────────────
+async function analyzeSingle() {
+  const text    = document.getElementById('inp-text').value.trim()
+  const summary = document.getElementById('inp-summary').value.trim()
+  if (!text) { showToast('Please enter a review text.'); return }
+  if (text.split(' ').length < 5) { showToast('Review is too short — add more detail.'); return }
+
+  setLoading('btn-single', true)
+  try {
+    const res  = await fetch(`${API}/api/predict`, {
+      method : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body   : JSON.stringify({ text, summary })
+    })
+    const data = await res.json()
+    if (data.error) { showToast(data.error); return }
+    renderSingleResult(data)
+  } catch(e) {
+    showToast('Cannot connect to server. Is Flask running?')
+  } finally {
+    setLoading('btn-single', false)
+  }
+}
+
+function renderSingleResult(d) {
+  const sec  = document.getElementById('result-section')
+  const card = document.getElementById('result-card')
+  const b    = d.breakdown
+
+  card.className = `result-card ${d.color}`
+  document.getElementById('res-emoji').textContent = d.emoji
+  document.getElementById('res-tag').textContent   = d.tag
+  document.getElementById('res-desc').textContent  = d.description
+  document.getElementById('res-score').textContent = d.percent + '%'
+
+  const bar = document.getElementById('res-bar')
+  bar.className = `score-bar ${d.color}`
+  setTimeout(() => bar.style.width = d.percent + '%', 60)
+
+  // Text structure
+  const ts = b.text_structure
+  document.getElementById('b-sentiment').textContent   = fmtSentiment(ts.vader_compound)
+  document.getElementById('b-readability').textContent = fmtReadability(ts.flesch_ease)
+  document.getElementById('b-words').textContent       = ts.word_count + ' words'
+  document.getElementById('b-features').textContent    = ts.feature_mentions
+  document.getElementById('b-balanced').textContent    = ts.has_both_sides ? '✅ Yes' : '❌ No'
+
+  // Grammar
+  const gs = b.grammar_structure
+  document.getElementById('b-pos').textContent     = pct(gs.pos_diversity)
+  document.getElementById('b-lexical').textContent = pct(gs.lexical_diversity)
+  document.getElementById('b-emotion').textContent = gs.emotion_count
+  document.getElementById('b-caps').textContent    = pct(gs.all_caps_ratio)
+  document.getElementById('b-numbers').textContent = gs.has_numbers ? '✅ Yes' : '❌ No'
+
+  // User signals
+  const us = b.user_signals
+  document.getElementById('b-score').textContent     = '⭐'.repeat(us.score) + ` (${us.score})`
+  document.getElementById('b-history').textContent   = us.user_review_count + ' reviews'
+  document.getElementById('b-deviation').textContent = (us.score_deviation).toFixed(2)
+  document.getElementById('b-spam').textContent      = us.is_suspicious ? '🚨 Flagged' : '✅ Clean'
+
+  sec.style.display = 'block'
+  sec.scrollIntoView({behavior:'smooth', block:'nearest'})
+}
+
+// ── Bulk ranking ─────────────────────────────────────────────
+async function analyzeBulk() {
+  const raw = document.getElementById('bulk-input').value.trim()
+  if (!raw) { showToast('Please enter at least one review.'); return }
+
+  const lines   = raw.split('\n').filter(l => l.trim())
+  const reviews = lines.map((line, i) => {
+    const parts   = line.split('::')
+    const summary = parts.length > 1 ? parts[0].trim() : ''
+    const text    = parts.length > 1 ? parts[1].trim() : parts[0].trim()
+    return { id: i + 1, text, summary }
+  })
+
+  setLoading('btn-bulk', true)
+  document.getElementById('bulk-results').innerHTML = ''
+  try {
+    const res  = await fetch(`${API}/api/predict-bulk`, {
+      method : 'POST',
+      headers: {'Content-Type':'application/json'},
+      body   : JSON.stringify({ reviews })
+    })
+    const data = await res.json()
+    if (data.error) { showToast(data.error); return }
+    renderBulkResults(data.ranked_reviews)
+  } catch(e) {
+    showToast('Cannot connect to server. Is Flask running?')
+  } finally {
+    setLoading('btn-bulk', false)
+  }
+}
+
+function renderBulkResults(items) {
+  const container = document.getElementById('bulk-results')
+  container.innerHTML = ''
+  items.forEach((item, idx) => {
+    const preview = (item.breakdown?.text_structure ? '' : '')
+    const origLine = document.getElementById('bulk-input').value.split('\n')[item.id - 1] || ''
+    const div = document.createElement('div')
+    div.className = 'rank-item'
+    div.innerHTML = `
+      <div class="rank-pos">#${idx + 1}</div>
+      <div class="rank-body">
+        <div style="font-weight:600;font-size:.9rem">${escHtml(origLine.split('::')[0]?.trim() || 'Review ' + item.id)}</div>
+        <div class="rank-text">${escHtml(origLine.split('::').slice(1).join('::').trim() || origLine)}</div>
+        <span class="tag-pill ${item.color}">${item.emoji} ${item.tag}</span>
+      </div>
+      <div class="rank-right">
+        <div class="rank-score ${item.color}">${item.percent}%</div>
+        <div style="font-size:.72rem;color:var(--text3);margin-top:3px">helpfulness</div>
+      </div>
+    `
+    container.appendChild(div)
+  })
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function pct(v) { return (v * 100).toFixed(1) + '%' }
+function fmtSentiment(v) {
+  if (v > 0.4)  return '😊 Positive'
+  if (v < -0.4) return '😠 Negative'
+  return '😐 Neutral'
+}
+function fmtReadability(v) {
+  if (v >= 70) return 'Easy'
+  if (v >= 50) return 'Moderate'
+  return 'Complex'
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+}
+
+// Allow Ctrl+Enter to submit
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') {
+    if (document.getElementById('tab-single').style.display !== 'none') analyzeSingle()
+    else analyzeBulk()
+  }
+})
+</script>
+</body>
+</html>

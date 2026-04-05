@@ -475,7 +475,7 @@ git push -u origin main
 | Instance Type | **Free** |
 
 5. Click **"Create Web Service"** → Render builds and deploys automatically
-6. Your app is live at: `https://your-app-name.onrender.com`
+6. Your app is live at: `https://reviewranker-u5vf.onrender.com`
 
 > **Note:** On the free tier, the server sleeps after 15 minutes of inactivity and takes ~30 seconds to wake up on the first request. This is expected.
 
@@ -484,7 +484,7 @@ In `plugin/content.js` and `plugin/popup.js`, change:
 ```javascript
 const API = 'http://localhost:5000'
 // → change to:
-const API = 'https://your-app-name.onrender.com'
+const API = 'https://reviewranker-u5vf.onrender.com'
 ```
 
 ### Option B — Railway (Also Free)
@@ -500,7 +500,7 @@ Suitable if you want to demo it as a web app only (no plugin).
 3. Upload your repo
 
 
-My choice - 
+My choice - option A
 
 ---------------------------------------------------------------------------------------------------------------
 
@@ -548,6 +548,7 @@ My choice -
 | Visualization | Matplotlib, Seaborn |
 
 ---------------------------------------------------------------------------------------------------------------
+** If you want it as a plugin in chrome - download and extract the plugin.rar, open chrome extension and enable developer mode, choose load unpacked and upload the plugin folder.**
 
 *Built as an academic NLP project. Dataset credits to Stanford SNAP and Amazon.*
 ~ Sara Dawood S

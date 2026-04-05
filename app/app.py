@@ -14,8 +14,7 @@ from flask_cors import CORS
 from predict import predict_review
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
-CORS(app) 
-
+CORS(app, origins=["*"])
 
 # ── Serve frontend ────────────────────────────────────────────────────────────
 @app.route('/')
